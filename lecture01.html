@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第1回｜簿記ってなに？</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy: #1a2a4a;
+      --navy-light: #253659;
+      --accent: #3d7abf;
+      --accent-light: #5b9bd5;
+      --gold: #c9a84c;
+      --gold-light: #e8c96a;
+      --bg: #f4f6f9;
+      --bg-card: #ffffff;
+      --text: #1e2d40;
+      --text-sub: #5a6a7e;
+      --border: #dde3ee;
+      --radius: 12px;
+      --shadow: 0 4px 24px rgba(26,42,74,0.10);
+      --shadow-hover: 0 8px 32px rgba(26,42,74,0.18);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.8;
+      font-size: 16px;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 60%, #2a4a7a 100%);
+      color: #fff;
+      padding: 80px 24px 72px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 70% 30%, rgba(61,122,191,0.25) 0%, transparent 60%),
+                  radial-gradient(ellipse at 20% 80%, rgba(201,168,76,0.12) 0%, transparent 50%);
+    }
+    .header-inner { position: relative; z-index: 1; }
+    .lecture-badge {
+      display: inline-block;
+      border: 1px solid rgba(201,168,76,0.6);
+      color: var(--gold-light);
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      padding: 5px 20px;
+      border-radius: 20px;
+      margin-bottom: 24px;
+      background: rgba(201,168,76,0.08);
+    }
+    .header-title {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 700;
+      line-height: 1.3;
+      letter-spacing: 0.04em;
+    }
+    .header-title .star { color: var(--gold-light); margin: 0 8px; font-size: 0.75em; vertical-align: middle; }
+    .header-sub {
+      margin-top: 18px;
+      font-size: 1rem;
+      font-weight: 300;
+      color: rgba(255,255,255,0.72);
+      letter-spacing: 0.06em;
+    }
+    .header-deco {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      margin-top: 36px;
+      color: rgba(255,255,255,0.3);
+    }
+    .header-deco-line { width: 60px; height: 1px; background: currentColor; }
+
+    /* ── MAIN LAYOUT ── */
+    main {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 60px 20px 100px;
+    }
+
+    /* ── SECTION ── */
+    .section {
+      margin-bottom: 80px;
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .section.visible { opacity: 1; transform: translateY(0); }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+    .section-number {
+      flex-shrink: 0;
+      width: 42px;
+      height: 42px;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .section-title {
+      font-size: clamp(1.2rem, 2.5vw, 1.5rem);
+      font-weight: 700;
+      color: var(--navy);
+      letter-spacing: 0.03em;
+    }
+    .section-title span {
+      color: var(--accent);
+    }
+
+    .lead {
+      font-size: 1.05rem;
+      color: var(--text-sub);
+      margin-bottom: 28px;
+      line-height: 1.9;
+    }
+    .lead strong { color: var(--text); font-weight: 700; }
+
+    /* ── DIVIDER ── */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 72px 0;
+    }
+
+    /* ── TRANSACTION CARDS ── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 8px;
+    }
+    .tx-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px 18px;
+      box-shadow: var(--shadow);
+      transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+      cursor: default;
+    }
+    .tx-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-hover);
+      border-color: var(--accent-light);
+    }
+    .tx-icon {
+      font-size: 1.9rem;
+      margin-bottom: 12px;
+      display: block;
+    }
+    .tx-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .tx-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 6px;
+    }
+    .tx-desc {
+      font-size: 0.83rem;
+      color: var(--text-sub);
+      line-height: 1.7;
+    }
+
+    /* ── CALLOUT BOX ── */
+    .callout {
+      border-left: 4px solid var(--accent);
+      background: rgba(61,122,191,0.06);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 20px 24px;
+      margin: 28px 0;
+      font-size: 1rem;
+      line-height: 1.85;
+    }
+    .callout strong { color: var(--navy); }
+    .callout.gold {
+      border-color: var(--gold);
+      background: rgba(201,168,76,0.07);
+    }
+
+    /* ── GIMMICK SECTION ── */
+    .gimmick-wrap {
+      background: var(--navy);
+      border-radius: 16px;
+      padding: 56px 24px 48px;
+      margin: 32px 0;
+      overflow: hidden;
+      position: relative;
+    }
+    .gimmick-wrap::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 50%, rgba(61,122,191,0.2) 0%, transparent 70%);
+    }
+    .gimmick-stage {
+      position: relative;
+      height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 36px;
+    }
+    .gimmick-left, .gimmick-right {
+      position: absolute;
+      font-size: clamp(2rem, 7vw, 3.8rem);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      transition: all 0.8s cubic-bezier(0.68,-0.55,0.27,1.55);
+      white-space: nowrap;
+      pointer-events: none;
+      user-select: none;
+    }
+    .gimmick-left { color: var(--accent-light); }
+    .gimmick-right { color: var(--gold-light); }
+    .gimmick-result {
+      position: absolute;
+      font-size: clamp(2.6rem, 8vw, 4.6rem);
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.1em;
+      opacity: 0;
+      transform: scale(0.7);
+      transition: opacity 0.5s ease 0.6s, transform 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.6s;
+      text-shadow: 0 0 32px rgba(201,168,76,0.6);
+      pointer-events: none;
+      user-select: none;
+    }
+    /* IDLE state */
+    .gimmick-left.idle  { transform: translateX(-140%); opacity: 0.7; }
+    .gimmick-right.idle { transform: translateX(140%); opacity: 0.7; }
+    .gimmick-result.idle { opacity: 0; transform: scale(0.7); }
+    /* MERGED state */
+    .gimmick-left.merged  { transform: translateX(-50%) scale(0.3); opacity: 0; }
+    .gimmick-right.merged { transform: translateX(50%) scale(0.3); opacity: 0; }
+    .gimmick-result.merged { opacity: 1; transform: scale(1); }
+
+    .gimmick-hint {
+      text-align: center;
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 1;
+    }
+    .gimmick-btn-row {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      position: relative;
+      z-index: 1;
+    }
+    .gimmick-btn {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #fff;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 500;
+      padding: 10px 28px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+      letter-spacing: 0.05em;
+    }
+    .gimmick-btn:hover { background: rgba(255,255,255,0.16); border-color: rgba(255,255,255,0.4); }
+    .gimmick-btn.active { background: var(--accent); border-color: var(--accent); }
+
+    .gimmick-explanation {
+      position: relative;
+      z-index: 1;
+      margin-top: 32px;
+      padding-top: 28px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.8);
+      font-size: 0.93rem;
+      line-height: 1.85;
+      text-align: center;
+    }
+    .gimmick-explanation strong { color: #fff; }
+
+    /* ── BENEFIT CARDS ── */
+    .benefit-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+      margin: 28px 0;
+    }
+    .benefit-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 22px;
+      box-shadow: var(--shadow);
+      transition: transform 0.22s, box-shadow 0.22s;
+    }
+    .benefit-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); }
+    .benefit-card .b-icon {
+      font-size: 2rem;
+      margin-bottom: 14px;
+      display: block;
+    }
+    .benefit-card .b-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 10px;
+    }
+    .benefit-card .b-body {
+      font-size: 0.85rem;
+      color: var(--text-sub);
+      line-height: 1.75;
+    }
+
+    /* ── ENGINEER SECTION ── */
+    .engineer-block {
+      background: linear-gradient(135deg, var(--navy) 0%, #1e3560 100%);
+      border-radius: 16px;
+      padding: 44px 36px;
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+    }
+    .engineer-block::after {
+      content: '</>';
+      position: absolute;
+      right: -10px;
+      bottom: -20px;
+      font-size: 9rem;
+      font-weight: 900;
+      color: rgba(255,255,255,0.04);
+      font-family: 'Courier New', monospace;
+      pointer-events: none;
+      user-select: none;
+    }
+    .engineer-block .e-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--gold-light);
+      margin-bottom: 18px;
+      letter-spacing: 0.04em;
+    }
+    .engineer-block p {
+      font-size: 0.96rem;
+      line-height: 1.9;
+      color: rgba(255,255,255,0.85);
+      margin-bottom: 16px;
+    }
+    .engineer-block p:last-child { margin-bottom: 0; }
+    .engineer-block strong { color: #fff; }
+    .code-inline {
+      background: rgba(61,122,191,0.35);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+      color: #a8d1ff;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--navy);
+      color: rgba(255,255,255,0.45);
+      text-align: center;
+      padding: 36px 20px;
+      font-size: 0.8rem;
+      letter-spacing: 0.06em;
+    }
+    footer strong { color: rgba(255,255,255,0.7); }
+
+    /* ── SCROLL PROGRESS ── */
+    .progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--gold));
+      width: 0%;
+      z-index: 999;
+      transition: width 0.1s linear;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      header { padding: 60px 20px 52px; }
+      main { padding: 40px 16px 80px; }
+      .engineer-block { padding: 32px 22px; }
+      .gimmick-wrap { padding: 40px 16px 36px; }
+      .gimmick-stage { height: 90px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- ══ HEADER ══ -->
+<header>
+  <div class="header-inner">
+    <div class="lecture-badge">BOOKKEEPING  BASICS  —  LESSON 01</div>
+    <h1 class="header-title">
+      <span class="star">✧</span>第1回<span class="star">✧</span><br>簿記ってなに？
+    </h1>
+    <p class="header-sub">日々の取引を記録することから、すべては始まる。</p>
+    <div class="header-deco">
+      <span class="header-deco-line"></span>
+      <span style="font-size:0.75rem;letter-spacing:0.2em;">SCROLL TO LEARN</span>
+      <span class="header-deco-line"></span>
+    </div>
+  </div>
+</header>
+
+<!-- ══ MAIN ══ -->
+<main>
+
+  <!-- ── SECTION 1 ── -->
+  <section class="section" id="s1">
+    <div class="section-header">
+      <div class="section-number">01</div>
+      <h2 class="section-title">会社の毎日は<span>「取引」</span>の連続</h2>
+    </div>
+
+    <p class="lead">
+      会社は毎日、さまざまな活動を通じて利益を生み出しています。<br>
+      リンゴを仕入れる、商品を売る、文房具を買う、給料を払う——。<br>
+      簿記では、こうしたお金やモノの動きを伴うすべての出来事を
+      <strong>「取引（とりひき）」</strong>と呼びます。
+    </p>
+
+    <div class="callout">
+      <strong>ポイント：</strong>「取引」という言葉は日常でも使いますが、簿記における取引は
+      「資産・負債・資本・収益・費用のどれかが増減する出来事」を指します。
+      日用語より少し広い概念ですが、今は<strong>「お金やモノが動く出来事＝取引」</strong>と覚えておきましょう。
+    </div>
+
+    <div class="cards-grid">
+      <div class="tx-card">
+        <span class="tx-icon">🍎</span>
+        <div class="tx-label">仕入</div>
+        <div class="tx-title">商品の仕入れ</div>
+        <div class="tx-desc">リンゴを問屋から100個、5,000円で買い付けた。</div>
+      </div>
+      <div class="tx-card">
+        <span class="tx-icon">🛒</span>
+        <div class="tx-label">売上</div>
+        <div class="tx-title">商品の販売</div>
+        <div class="tx-desc">お客さんにリンゴを10個、1,200円で販売した。</div>
+      </div>
+      <div class="tx-card">
+        <span class="tx-icon">✏️</span>
+        <div class="tx-label">費用</div>
+        <div class="tx-title">事務用品の購入</div>
+        <div class="tx-desc">ボールペンとノートをまとめて980円で購入した。</div>
+      </div>
+      <div class="tx-card">
+        <span class="tx-icon">👤</span>
+        <div class="tx-label">費用</div>
+        <div class="tx-title">給料の支払い</div>
+        <div class="tx-desc">スタッフへ今月分の給料250,000円を振り込んだ。</div>
+      </div>
+      <div class="tx-card">
+        <span class="tx-icon">🏢</span>
+        <div class="tx-label">費用</div>
+        <div class="tx-title">家賃の支払い</div>
+        <div class="tx-desc">事務所の家賃80,000円を大家さんへ支払った。</div>
+      </div>
+      <div class="tx-card">
+        <span class="tx-icon">💳</span>
+        <div class="tx-label">借入</div>
+        <div class="tx-title">銀行からの借入</div>
+        <div class="tx-desc">運転資金として銀行から500,000円を借り入れた。</div>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:28px;">
+      これらはすべて<strong>「取引」</strong>です。小さな鉛筆1本の購入も、大きな設備投資も、
+      簿記の世界では同じルールで記録されます。積み重ねの数が、会社の姿を形作るのです。
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── SECTION 2 ── -->
+  <section class="section" id="s2">
+    <div class="section-header">
+      <div class="section-number">02</div>
+      <h2 class="section-title">語源から読む<span>「簿記」</span>の意味</h2>
+    </div>
+
+    <p class="lead">
+      どれほど繁盛しているお店でも、毎日の取引をすべて<strong>頭の中だけ</strong>で
+      覚えていることは不可能です。「あの仕入れ、いくらだったっけ？」「今月は赤字？黒字？」——
+      記憶は薄れ、曖昧さがトラブルを生みます。<strong>だから、記録が必要</strong>なのです。
+    </p>
+
+    <!-- GIMMICK -->
+    <div class="gimmick-wrap">
+      <p class="gimmick-hint">ボタンを押して「簿記」の語源を体感しよう</p>
+
+      <div class="gimmick-stage" id="gimmickStage">
+        <div class="gimmick-left idle" id="gLeft">帳簿</div>
+        <div class="gimmick-right idle" id="gRight">記入</div>
+        <div class="gimmick-result idle" id="gResult">簿記</div>
+      </div>
+
+      <div class="gimmick-btn-row">
+        <button class="gimmick-btn" id="gMergeBtn" onclick="mergeWords()">合体させる →</button>
+        <button class="gimmick-btn" id="gResetBtn" onclick="resetWords()" style="display:none">リセット ↺</button>
+      </div>
+
+      <div class="gimmick-explanation">
+        <strong>「帳簿（ちょうぼ）」</strong>に<strong>「記入（きにゅう）」</strong>する、<br>
+        それを短くしたのが <strong style="font-size:1.2em;color:var(--gold-light)">「簿記（ぼき）」</strong> という言葉の由来です。<br>
+        <span style="font-size:0.85em;color:rgba(255,255,255,0.5);margin-top:8px;display:block;">
+          ※ 英語では Bookkeeping（帳簿をつけること）とも呼ばれます
+        </span>
+      </div>
+    </div>
+
+    <p class="lead" style="margin-top:28px;">
+      記録のルールさえ決まっていれば、誰が書いても同じ形式で残ります。
+      翌月見返したとき、1年後に見返したとき、あるいは第三者が見たとき——
+      <strong>いつでも・誰でも・正確に</strong>状況を把握できる。それが「簿記のルールで記録する」ことの価値です。
+    </p>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── SECTION 3 ── -->
+  <section class="section" id="s3">
+    <div class="section-header">
+      <div class="section-number">03</div>
+      <h2 class="section-title">簿記を学ぶと<span>見えてくるもの</span></h2>
+    </div>
+
+    <p class="lead">
+      取引の記録を積み重ねていくと、単なるメモが「数字の地図」へと変わります。
+      その地図を読めるようになると、ビジネスの現場でまったく違う景色が見えてきます。
+    </p>
+
+    <div class="benefit-grid">
+      <div class="benefit-card">
+        <span class="b-icon">📈</span>
+        <div class="b-title">利益がわかる</div>
+        <div class="b-body">売上と費用を記録し続ければ、「今月いくら儲かったか」が正確に計算できます。感覚ではなく、数字で経営状態を把握できます。</div>
+      </div>
+      <div class="benefit-card">
+        <span class="b-icon">🏦</span>
+        <div class="b-title">財産の全体像がわかる</div>
+        <div class="b-body">現金・預金・在庫・土地など、会社が今どれだけの財産を持っているかを一覧で把握できます。</div>
+      </div>
+      <div class="benefit-card">
+        <span class="b-icon">📊</span>
+        <div class="b-title">株式投資の判断材料に</div>
+        <div class="b-body">上場企業の決算書を読むと、その会社が「稼げているか」「借金まみれか」を自分の目で判断できます。投資判断の精度が上がります。</div>
+      </div>
+      <div class="benefit-card">
+        <span class="b-icon">🔍</span>
+        <div class="b-title">取引先を"デバッグ"できる</div>
+        <div class="b-body">取引先の財務諸表を読めれば、「この会社は本当に信頼できるか？」を数字で検証できます。リスクを事前に察知する力になります。</div>
+      </div>
+    </div>
+
+    <div class="callout gold">
+      <strong>簿記は「記録術」であり、同時に「読解術」でもあります。</strong><br>
+      記録できる人は書き手になれる。記録を読める人は分析者になれる。
+      その両方を身につけることが、簿記を学ぶゴールです。
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ── SECTION 4 ── -->
+  <section class="section" id="s4">
+    <div class="section-header">
+      <div class="section-number">04</div>
+      <h2 class="section-title">システム構築に<span>関わるあなたへ</span></h2>
+    </div>
+
+    <div class="engineer-block">
+      <div class="e-title">── エンジニアの視点から見る「簿記」</div>
+
+      <p>
+        ECサイトの注文データ、POSレジの売上ログ、経費申請システムのレコード——
+        皆さんが日々設計・実装するシステムの<strong>トランザクションデータは、
+        簿記における「日々の取引」そのもの</strong>です。
+        データベースに積み上げられる一行一行が、会計帳簿の一行一行に対応しています。
+      </p>
+
+      <p>
+        では、そのデータはどこへ向かうのか？<br>
+        最終的には<strong>「決算書」という出口</strong>へ集約されます。
+        ちょうど、複数のAPIレスポンスが集まってダッシュボードの数値になるように。
+      </p>
+
+      <p>
+        <strong>データの整合性</strong>——例えば
+        <span class="code-inline">売上 - 費用 = 利益</span> という等式——は、
+        簿記の根幹を支えるルールです。このルールを知らずにシステムを設計すると、
+        会計担当者が「数字が合わない」と悲鳴を上げる場面が生まれます。
+      </p>
+
+      <p>
+        簿記を学ぶことは、<strong>自分が作るシステムの「意味」を理解すること</strong>でもあります。
+        今日から積み上げる知識が、上流工程の設計力と要件定義力に直結するのです。
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<!-- ══ FOOTER ══ -->
+<footer>
+  <p><strong>第1回 ✧ 簿記ってなに？</strong></p>
+  <p style="margin-top:8px;">次回：取引を左右に分ける「仕訳」の世界へ</p>
+</footer>
+
+<script>
+  /* ── SCROLL PROGRESS ── */
+  const progressBar = document.getElementById('progressBar');
+  window.addEventListener('scroll', () => {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    progressBar.style.width = (docHeight > 0 ? (scrollTop / docHeight) * 100 : 0) + '%';
+  });
+
+  /* ── FADE-IN ON SCROLL ── */
+  const sections = document.querySelectorAll('.section');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  sections.forEach(s => observer.observe(s));
+
+  /* ── GIMMICK ── */
+  let merged = false;
+
+  function mergeWords() {
+    if (merged) return;
+    merged = true;
+
+    const left   = document.getElementById('gLeft');
+    const right  = document.getElementById('gRight');
+    const result = document.getElementById('gResult');
+    const btn    = document.getElementById('gMergeBtn');
+    const reset  = document.getElementById('gResetBtn');
+
+    left.classList.remove('idle');
+    right.classList.remove('idle');
+    result.classList.remove('idle');
+
+    left.classList.add('merged');
+    right.classList.add('merged');
+    result.classList.add('merged');
+
+    btn.style.display = 'none';
+    reset.style.display = 'inline-block';
+    reset.classList.remove('active');
+    setTimeout(() => reset.classList.add('active'), 700);
+  }
+
+  function resetWords() {
+    if (!merged) return;
+    merged = false;
+
+    const left   = document.getElementById('gLeft');
+    const right  = document.getElementById('gRight');
+    const result = document.getElementById('gResult');
+    const btn    = document.getElementById('gMergeBtn');
+    const reset  = document.getElementById('gResetBtn');
+
+    /* result を先にフェードアウト */
+    result.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+    result.style.opacity = '0';
+    result.style.transform = 'scale(0.7)';
+
+    setTimeout(() => {
+      left.classList.remove('merged');
+      right.classList.remove('merged');
+      result.classList.remove('merged');
+      left.classList.add('idle');
+      right.classList.add('idle');
+      result.classList.add('idle');
+      result.style.transition = '';
+      result.style.opacity = '';
+      result.style.transform = '';
+    }, 350);
+
+    reset.style.display = 'none';
+    btn.style.display = 'inline-block';
+    btn.classList.remove('active');
+  }
+</script>
+</body>
+</html>

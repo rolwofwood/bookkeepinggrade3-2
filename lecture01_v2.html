@@ -740,19 +740,24 @@ function doReset() {
 /* ═══════════ QUIZ ═══════════ */
 function answer(el, correct) {
   if (quizDone) return;
-  quizDone = true;
-  const opts = document.querySelectorAll('.qopt');
-  opts.forEach(o => {
-    if (o === el) {
-      o.classList.add(correct ? 'correct' : 'wrong');
-    } else {
-      o.classList.add('wrong');
-    }
-    o.style.pointerEvents = 'none';
-  });
+
   if (correct) {
-    const ans = document.getElementById('qAns');
-    ans.classList.add('show');
+    /* 正解：全選択肢を確定ロック */
+    quizDone = true;
+    document.querySelectorAll('.qopt').forEach(o => {
+      o.classList.remove('wrong');
+      o.classList.add(o === el ? 'correct' : 'wrong');
+      o.style.pointerEvents = 'none';
+    });
+    document.getElementById('qAns').classList.add('show');
+  } else {
+    /* 不正解：この選択肢だけ×表示、少し待ってから選び直し可能に */
+    el.classList.add('wrong');
+    el.style.pointerEvents = 'none';
+    setTimeout(() => {
+      el.classList.remove('wrong');
+      el.style.pointerEvents = '';
+    }, 900);
   }
 }
 

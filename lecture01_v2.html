@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第1回｜簿記ってなに？</title>
+<style>
+/* ═══════════════════════════════════════
+   RESET & TOKENS
+═══════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --navy:     #18243c;
+  --navy2:    #22334f;
+  --blue:     #2563c0;
+  --blue-l:   #4a8de0;
+  --blue-ll:  #d4e6ff;
+  --gold:     #c49a2e;
+  --gold-l:   #e8c96a;
+  --gold-ll:  #fdf3d5;
+  --green:    #17a362;
+  --red:      #dc3545;
+  --bg:       #f0f2f5;
+  --surface:  #ffffff;
+  --border:   #dde3ee;
+  --text:     #1a2640;
+  --sub:      #5a6a80;
+  --r:        12px;
+  --r-lg:     18px;
+  --sh:       0 2px 16px rgba(24,36,60,.09);
+  --sh2:      0 6px 28px rgba(24,36,60,.16);
+}
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  font-family: 'Hiragino Kaku Gothic ProN','Hiragino Sans','Meiryo',
+               'Noto Sans JP', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ═══════════════════════════════════════
+   PROGRESS BAR
+═══════════════════════════════════════ */
+#prog {
+  position: fixed; top: 0; left: 0; height: 3px; z-index: 300;
+  background: linear-gradient(90deg, var(--blue) 0%, var(--gold) 100%);
+  transition: width .4s ease;
+}
+
+/* ═══════════════════════════════════════
+   SLIDE ENGINE
+═══════════════════════════════════════ */
+#deck {
+  position: fixed; inset: 0;
+  overflow: hidden;
+}
+
+.slide {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 56px 40px 100px;
+  opacity: 0;
+  pointer-events: none;
+  will-change: opacity, transform;
+}
+.slide.enter-from-right { transform: translateX(48px); }
+.slide.enter-from-left  { transform: translateX(-48px); }
+.slide.active {
+  opacity: 1;
+  pointer-events: all;
+  transform: translateX(0);
+  transition: opacity .5s ease, transform .5s ease;
+}
+.slide.exit-left  { opacity: 0; transform: translateX(-48px); transition: opacity .5s ease, transform .5s ease; }
+.slide.exit-right { opacity: 0; transform: translateX(48px);  transition: opacity .5s ease, transform .5s ease; }
+
+/* ═══════════════════════════════════════
+   NAV BAR
+═══════════════════════════════════════ */
+#nav {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  z-index: 200;
+  display: flex; align-items: center; gap: 14px;
+  background: rgba(255,255,255,.9);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 40px;
+  padding: 9px 18px;
+  box-shadow: var(--sh);
+}
+.nb {
+  width: 38px; height: 38px; border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: var(--surface); color: var(--navy);
+  font-size: 1rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .18s, transform .15s, border-color .18s;
+}
+.nb:hover:not(:disabled) { background: var(--navy); color: #fff; border-color: var(--navy); transform: scale(1.1); }
+.nb:disabled { opacity: .3; cursor: default; }
+#dots { display: flex; gap: 6px; align-items: center; }
+.dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--border); cursor: pointer;
+  transition: background .25s, transform .25s;
+}
+.dot.on { background: var(--blue); transform: scale(1.4); }
+#ctr { font-size: .78rem; font-weight: 600; color: var(--sub); letter-spacing: .08em; min-width: 46px; text-align: center; }
+
+/* ═══════════════════════════════════════
+   SHARED TYPOGRAPHY
+═══════════════════════════════════════ */
+.tag {
+  display: inline-block;
+  font-size: .68rem; font-weight: 700; letter-spacing: .18em;
+  color: var(--blue); text-transform: uppercase;
+  border: 1px solid var(--blue-l);
+  background: var(--blue-ll);
+  padding: 3px 12px; border-radius: 20px;
+  margin-bottom: 14px;
+}
+.sh {
+  font-size: clamp(1.35rem, 2.8vw, 1.95rem);
+  font-weight: 800; color: var(--navy); line-height: 1.3;
+  border-left: 4px solid var(--blue); padding-left: 16px;
+  margin-bottom: 22px;
+}
+.sh em { color: var(--blue); font-style: normal; }
+.lead {
+  font-size: clamp(.86rem, 1.45vw, .98rem);
+  color: var(--sub); line-height: 1.95; margin-bottom: 20px;
+}
+.lead strong { color: var(--text); font-weight: 700; }
+.callout {
+  border-left: 4px solid var(--blue);
+  background: rgba(37,99,192,.055);
+  border-radius: 0 var(--r) var(--r) 0;
+  padding: 14px 20px; margin-top: 16px;
+  font-size: .9rem; line-height: 1.85;
+}
+.callout strong { color: var(--navy); }
+
+.w { width: 100%; max-width: 800px; }
+
+/* ═══════════════════════════════════════
+   SLIDE 1 — COVER
+═══════════════════════════════════════ */
+#s1 {
+  background: linear-gradient(140deg, var(--navy) 0%, var(--navy2) 55%, #1e3a6a 100%);
+}
+#s1::before {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse at 68% 26%, rgba(37,99,192,.28) 0%, transparent 52%),
+    radial-gradient(ellipse at 22% 78%, rgba(196,154,46,.14) 0%, transparent 48%);
+}
+.cv { position: relative; z-index: 1; text-align: center; }
+.cv-badge {
+  display: inline-block;
+  border: 1px solid rgba(232,201,106,.5);
+  color: var(--gold-l);
+  font-size: .73rem; font-weight: 600; letter-spacing: .22em;
+  padding: 5px 22px; border-radius: 20px;
+  background: rgba(232,201,106,.08);
+  margin-bottom: 30px;
+}
+.cv-title {
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  font-weight: 800; color: #fff; line-height: 1.25; letter-spacing: .03em;
+}
+.cv-star { color: var(--gold-l); margin: 0 10px; }
+.cv-sub {
+  margin-top: 20px;
+  font-size: clamp(.9rem, 1.8vw, 1.1rem);
+  color: rgba(255,255,255,.6); font-weight: 300; letter-spacing: .1em;
+}
+.cv-rule {
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  margin-top: 40px; color: rgba(255,255,255,.25);
+}
+.cv-line { width: 52px; height: 1px; background: currentColor; }
+.cv-rule span { font-size: .7rem; letter-spacing: .22em; }
+
+/* ═══════════════════════════════════════
+   SLIDE 2 — 取引カード
+═══════════════════════════════════════ */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px; margin: 6px 0 18px;
+}
+.tc {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 18px 16px;
+  transition: transform .2s, box-shadow .2s, border-color .2s;
+  cursor: default;
+}
+.tc:hover { transform: translateY(-3px); box-shadow: var(--sh2); border-color: var(--blue-l); }
+.tc-icon { font-size: 1.6rem; margin-bottom: 9px; display: block; }
+.tc-lbl { font-size: .66rem; font-weight: 800; color: var(--blue); letter-spacing: .12em; margin-bottom: 4px; text-transform: uppercase; }
+.tc-ttl { font-size: .88rem; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+.tc-dsc { font-size: .78rem; color: var(--sub); line-height: 1.65; }
+
+/* ═══════════════════════════════════════
+   SLIDE 3 — GIMMICK
+═══════════════════════════════════════ */
+#s3 {
+  background: linear-gradient(145deg, #0e1c32 0%, #18243c 55%, #1a3055 100%);
+  color: #fff;
+}
+#s3::before {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 50%, rgba(37,99,192,.18) 0%, transparent 62%);
+}
+.g-inner { position: relative; z-index: 1; width: 100%; max-width: 800px; text-align: center; }
+.g-tag { font-size: .68rem; font-weight: 700; letter-spacing: .2em; color: var(--gold-l); opacity: .85; margin-bottom: 10px; text-transform: uppercase; }
+.g-h {
+  font-size: clamp(1.3rem, 2.6vw, 1.75rem);
+  font-weight: 800; line-height: 1.35; margin-bottom: 14px;
+}
+.g-lead { font-size: clamp(.84rem, 1.4vw, .95rem); color: rgba(255,255,255,.68); line-height: 1.9; margin-bottom: 30px; }
+.g-lead strong { color: #fff; }
+
+/* stage */
+.g-stage {
+  position: relative; height: 100px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 26px;
+}
+.gw {
+  position: absolute;
+  font-size: clamp(1.8rem, 4.5vw, 3.2rem);
+  font-weight: 900; letter-spacing: .04em;
+  white-space: nowrap;
+  transition: all .78s cubic-bezier(.68,-.5,.27,1.55);
+  pointer-events: none; user-select: none;
+}
+#gL { color: var(--blue-l); left: 0; }
+#gR { color: var(--gold-l); right: 0; }
+#gRes {
+  position: absolute;
+  font-size: clamp(2.4rem, 5.5vw, 3.8rem);
+  font-weight: 900; letter-spacing: .12em; color: #fff;
+  text-shadow: 0 0 36px rgba(232,201,106,.75), 0 0 72px rgba(37,99,192,.5);
+  opacity: 0; transform: scale(.55);
+  transition: opacity .52s ease .7s, transform .55s cubic-bezier(.34,1.56,.64,1) .7s;
+  pointer-events: none; user-select: none;
+}
+
+/* merged */
+.merged #gL  { left: 50%;  transform: translateX(-50%) scale(.2); opacity: 0; }
+.merged #gR  { right: 50%; transform: translateX(50%)  scale(.2); opacity: 0; }
+.merged #gRes{ opacity: 1; transform: scale(1); }
+
+.g-btns { display: flex; gap: 12px; justify-content: center; margin-bottom: 26px; }
+.g-btn {
+  background: rgba(255,255,255,.09); border: 1px solid rgba(255,255,255,.22);
+  color: #fff; font-family: inherit; font-size: .88rem; font-weight: 600;
+  padding: 9px 26px; border-radius: 8px; cursor: pointer; letter-spacing: .06em;
+  transition: background .2s, border-color .2s;
+}
+.g-btn:hover { background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.45); }
+.g-btn.act { background: var(--blue); border-color: var(--blue); }
+
+.g-note {
+  border-top: 1px solid rgba(255,255,255,.1);
+  padding-top: 20px;
+  font-size: clamp(.83rem, 1.38vw, .95rem);
+  color: rgba(255,255,255,.72); line-height: 1.85;
+}
+.g-note strong { color: #fff; }
+.g-note em { color: var(--gold-l); font-style: normal; font-weight: 700; font-size: 1.12em; }
+
+/* ═══════════════════════════════════════
+   SLIDE 4 — QUIZ
+═══════════════════════════════════════ */
+.quiz-box {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: 28px 28px 22px;
+  box-shadow: var(--sh); margin-bottom: 18px;
+}
+.quiz-q {
+  font-size: clamp(.9rem, 1.5vw, 1.05rem);
+  line-height: 1.85; color: var(--text); margin-bottom: 22px;
+}
+.quiz-q strong { color: var(--navy); font-weight: 700; }
+.quiz-opts { display: flex; flex-direction: column; gap: 10px; }
+.qopt {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--bg); border: 1.5px solid var(--border);
+  border-radius: var(--r); padding: 12px 18px;
+  cursor: pointer; font-size: .92rem; font-weight: 500; color: var(--text);
+  transition: border-color .2s, background .2s, transform .15s;
+  user-select: none;
+}
+.qopt:hover { border-color: var(--blue-l); background: var(--blue-ll); transform: translateX(4px); }
+.qopt.correct { border-color: var(--green); background: rgba(23,163,98,.08); color: var(--navy); }
+.qopt.wrong   { border-color: var(--red);   background: rgba(220,53,69,.07); opacity: .55; pointer-events: none; }
+.qopt.correct .qmark::before { content: '✓'; color: var(--green); }
+.qopt.wrong   .qmark::before { content: '✗'; color: var(--red); }
+.qmark { width: 22px; flex-shrink: 0; font-size: 1.1rem; font-weight: 800; text-align: center; }
+.qnum  { width: 24px; height: 24px; border-radius: 50%; background: var(--border); color: var(--sub); font-size: .78rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background .2s, color .2s; }
+.qopt.correct .qnum { background: var(--green); color: #fff; }
+.qopt.wrong   .qnum { background: var(--red);   color: #fff; }
+
+.quiz-ans {
+  background: rgba(23,163,98,.08);
+  border: 1.5px solid var(--green);
+  border-radius: var(--r); padding: 16px 20px;
+  font-size: .9rem; line-height: 1.85; color: var(--navy);
+  margin-top: 4px;
+  max-height: 0; overflow: hidden; opacity: 0;
+  transition: max-height .5s ease, opacity .4s ease, padding .4s ease;
+}
+.quiz-ans.show { max-height: 160px; opacity: 1; padding: 16px 20px; }
+.quiz-ans strong { color: var(--green); }
+
+/* ═══════════════════════════════════════
+   SLIDE 5 — 3 VIEWS
+═══════════════════════════════════════ */
+.view-tabs { display: flex; gap: 0; margin-bottom: 0; border-radius: var(--r) var(--r) 0 0; overflow: hidden; border: 1px solid var(--border); border-bottom: none; }
+.vtab {
+  flex: 1; padding: 11px 8px;
+  background: var(--bg); border: none;
+  font-family: inherit; font-size: .82rem; font-weight: 600; color: var(--sub);
+  cursor: pointer; letter-spacing: .03em;
+  transition: background .2s, color .2s;
+  border-right: 1px solid var(--border);
+}
+.vtab:last-child { border-right: none; }
+.vtab:hover { background: var(--blue-ll); color: var(--blue); }
+.vtab.on { background: var(--surface); color: var(--blue); border-bottom: 2px solid var(--blue); }
+.view-panel {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 0 0 var(--r-lg) var(--r-lg);
+  padding: 28px 26px; box-shadow: var(--sh);
+  min-height: 180px;
+}
+.vp { display: none; }
+.vp.on { display: block; }
+.vp-icon { font-size: 2.4rem; margin-bottom: 14px; display: block; }
+.vp-title { font-size: 1.05rem; font-weight: 800; color: var(--navy); margin-bottom: 12px; }
+.vp-body { font-size: .9rem; color: var(--sub); line-height: 1.85; }
+.vp-body strong { color: var(--text); }
+.vp-quote {
+  margin-top: 14px;
+  background: var(--blue-ll); border-left: 3px solid var(--blue);
+  border-radius: 0 var(--r) var(--r) 0;
+  padding: 12px 18px; font-size: .88rem; font-style: italic; color: var(--navy);
+  line-height: 1.8;
+}
+
+/* ═══════════════════════════════════════
+   SLIDE 6 — ENGINEER
+═══════════════════════════════════════ */
+.eng {
+  background: linear-gradient(135deg, var(--navy) 0%, #1a3468 100%);
+  border-radius: var(--r-lg); padding: 36px 30px;
+  color: #fff; position: relative; overflow: hidden;
+  box-shadow: var(--sh2);
+}
+.eng::after {
+  content: '</>';
+  position: absolute; right: -6px; bottom: -22px;
+  font-size: 7.5rem; font-weight: 900;
+  font-family: 'Courier New', monospace;
+  color: rgba(255,255,255,.04); pointer-events: none; user-select: none;
+}
+.eng-lbl { font-size: .68rem; font-weight: 700; letter-spacing: .2em; color: var(--gold-l); margin-bottom: 16px; text-transform: uppercase; }
+.eng p { font-size: clamp(.82rem, 1.4vw, .94rem); line-height: 1.92; color: rgba(255,255,255,.8); margin-bottom: 14px; }
+.eng p:last-child { margin-bottom: 0; }
+.eng strong { color: #fff; }
+.chip {
+  display: inline-block;
+  background: rgba(74,141,224,.35); padding: 1px 8px; border-radius: 4px;
+  font-family: 'Courier New', monospace; font-size: .87em; color: #a8d0ff;
+}
+.flow {
+  display: flex; align-items: center; gap: 10px;
+  margin: 16px 0; flex-wrap: wrap;
+}
+.fstep {
+  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
+  border-radius: 8px; padding: 8px 14px;
+  font-size: .82rem; font-weight: 600; color: rgba(255,255,255,.9);
+  white-space: nowrap;
+}
+.farrow { color: rgba(255,255,255,.35); font-size: 1.2rem; }
+
+/* ═══════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════ */
+@media (max-width: 620px) {
+  .slide { padding: 36px 18px 92px; }
+  .cards { grid-template-columns: 1fr 1fr; gap: 9px; }
+  .g-stage { height: 80px; }
+  .gw { font-size: 1.5rem; }
+  #gRes { font-size: 2.2rem; }
+  .vtab { font-size: .74rem; padding: 9px 4px; }
+  .eng { padding: 26px 20px; }
+  .view-panel { padding: 22px 18px; }
+  .quiz-box { padding: 20px 16px 16px; }
+}
+</style>
+</head>
+<body>
+
+<div id="prog"></div>
+<div id="deck">
+
+  <!-- ══ SLIDE 1: COVER ══ -->
+  <section class="slide active" id="s1" data-i="0">
+    <div class="cv">
+      <div class="cv-badge">BOOKKEEPING BASICS &nbsp;—&nbsp; LESSON 01</div>
+      <h1 class="cv-title">
+        <span class="cv-star">✧</span>第1回<span class="cv-star">✧</span><br>簿記ってなに？
+      </h1>
+      <p class="cv-sub">ビジネスを測る「共通のものさし」を手に入れる</p>
+      <div class="cv-rule">
+        <span class="cv-line"></span>
+        <span>USE ARROW KEYS OR BUTTONS</span>
+        <span class="cv-line"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ SLIDE 2: 取引 ══ -->
+  <section class="slide enter-from-right" id="s2" data-i="1">
+    <div class="w">
+      <div class="tag">Section 01 &nbsp;/&nbsp; 取引とは</div>
+      <h2 class="sh">会社の毎日は<em>「取引」</em>の連続</h2>
+      <p class="lead">
+        会社は利益を出すために、毎日お金やモノを動かしています。<br>
+        商品を仕入れ、売り、必要な経費を払い、スタッフに給料を渡す——<br>
+        こうした<strong>「お金やモノが動く出来事」</strong>を、簿記では<strong>「取引（とりひき）」</strong>と呼びます。
+      </p>
+      <div class="cards">
+        <div class="tc">
+          <span class="tc-icon">🍎</span>
+          <div class="tc-lbl">仕入</div>
+          <div class="tc-ttl">リンゴを仕入れた</div>
+          <div class="tc-dsc">100円でリンゴを1個、問屋から仕入れた。</div>
+        </div>
+        <div class="tc">
+          <span class="tc-icon">🛒</span>
+          <div class="tc-lbl">売上</div>
+          <div class="tc-ttl">商品を売った</div>
+          <div class="tc-dsc">110円でお客さんにリンゴを販売した。</div>
+        </div>
+        <div class="tc">
+          <span class="tc-icon">✏️</span>
+          <div class="tc-lbl">費用</div>
+          <div class="tc-ttl">文具を購入した</div>
+          <div class="tc-dsc">事務用にペンやノートを購入した。</div>
+        </div>
+        <div class="tc">
+          <span class="tc-icon">👤</span>
+          <div class="tc-lbl">費用</div>
+          <div class="tc-ttl">給料を払った</div>
+          <div class="tc-dsc">働いてくれた従業員に給料を支払った。</div>
+        </div>
+      </div>
+      <div class="callout">
+        <strong>ポイント：</strong>大きな契約も、100円の文具購入も、すべて同じ「取引」です。
+        この一つひとつを記録していくことが、簿記の出発点になります。
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ SLIDE 3: GIMMICK ══ -->
+  <section class="slide enter-from-right" id="s3" data-i="2">
+    <div class="g-inner">
+      <div class="g-tag">Section 02 &nbsp;/&nbsp; Etymology</div>
+      <h2 class="g-h">なぜ「記録」が必要なのか？<br>そして「簿記」の語源とは</h2>
+      <p class="g-lead">
+        どんなに繁盛していても、<strong>人間は忘れる生き物</strong>です。<br>
+        記録がなければ、いくら儲かったのか・いくら仕入れたのかが<strong>わからなくなります。</strong><br>
+        だからこそ、日々の取引を「忘れないようにメモする」仕組みが必要なのです。
+      </p>
+
+      <div class="g-stage" id="gStage">
+        <span class="gw" id="gL">帳簿（ノート）</span>
+        <span class="gw" id="gR">記入（メモ）</span>
+        <span id="gRes">簿 記</span>
+      </div>
+
+      <div class="g-btns">
+        <button class="g-btn act" id="gMergeBtn" onclick="doMerge()">合体させる →</button>
+        <button class="g-btn" id="gResetBtn" onclick="doReset()" style="display:none">リセット ↺</button>
+      </div>
+
+      <div class="g-note">
+        <strong>帳簿（ノート）</strong>に<strong>記入する</strong>——<br>
+        この「<strong>簿</strong>」と「<strong>記</strong>」を組み合わせたのが <em>「簿記（ボキ）」</em> の語源です。<br>
+        <span style="font-size:.82em;color:rgba(255,255,255,.42);margin-top:5px;display:block;">
+          ※ 英語では Bookkeeping（帳簿をつけること）とも呼ばれます
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ SLIDE 4: QUIZ ══ -->
+  <section class="slide enter-from-right" id="s4" data-i="3">
+    <div class="w">
+      <div class="tag">Section 03 &nbsp;/&nbsp; Quiz</div>
+      <h2 class="sh">もし<em>簿記がなかったら</em>？</h2>
+      <div class="quiz-box">
+        <p class="quiz-q">
+          あるパン屋さんが1ヶ月頑張ってパンを <strong>1,000個</strong> 売りました。大繁盛です！<br>
+          でも、材料代・電気代・家賃など<strong>一切メモをしていませんでした。</strong><br><br>
+          さて、店長は今月<strong>いくら儲かっているか</strong>わかるでしょうか？
+        </p>
+        <div class="quiz-opts" id="qOpts">
+          <div class="qopt" onclick="answer(this,false)">
+            <span class="qnum">①</span>
+            <span class="qmark"></span>
+            <span>10万円くらい儲かっているはず！</span>
+          </div>
+          <div class="qopt" onclick="answer(this,false)">
+            <span class="qnum">②</span>
+            <span class="qmark"></span>
+            <span>たくさん売れたから、赤字のはずがない！</span>
+          </div>
+          <div class="qopt" onclick="answer(this,true)">
+            <span class="qnum">③</span>
+            <span class="qmark"></span>
+            <span>誰にもわからない</span>
+          </div>
+        </div>
+      </div>
+      <div class="quiz-ans" id="qAns">
+        <strong>✓ 正解！</strong><br>
+        記録（簿記）がなければ、どれだけ忙しくても「実は大赤字だった」という事態に気づけません。
+        売上が多くても、材料費や経費がそれを上回っていれば赤字です。
+        <strong>数字を記録すること</strong>は、経営の土台そのものなのです。
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ SLIDE 5: 3 VIEWS ══ -->
+  <section class="slide enter-from-right" id="s5" data-i="4">
+    <div class="w">
+      <div class="tag">Section 04 &nbsp;/&nbsp; 3つの視点</div>
+      <h2 class="sh">簿記を学ぶと見える<em>「3つの視点」</em></h2>
+      <p class="lead">
+        記録を積み重ねて集計することで、会社の本当の実力が見えてきます。<br>
+        その「見え方」は、<strong>立場によって異なります。</strong>タブを切り替えて確認してみましょう。
+      </p>
+      <div class="view-tabs" role="tablist">
+        <button class="vtab on" onclick="switchTab(0)" id="vt0">📊 経営者の視点</button>
+        <button class="vtab"    onclick="switchTab(1)" id="vt1">📈 投資家の視点</button>
+        <button class="vtab"    onclick="switchTab(2)" id="vt2">🤝 取引先の視点</button>
+      </div>
+      <div class="view-panel">
+        <div class="vp on" id="vp0">
+          <span class="vp-icon">📊</span>
+          <div class="vp-title">経営者として自社を見る</div>
+          <div class="vp-body">
+            売上と費用の記録が揃うと、「<strong>今のやり方で利益は出ているか？</strong>」が数字で判断できます。
+            感覚に頼らず、根拠のある意思決定ができるようになります。
+            <div class="vp-quote">「次の設備投資をするタイミングはいつか？」「どの商品が一番利益を生んでいるか？」——そういった問いに、数字で答えられるようになります。</div>
+          </div>
+        </div>
+        <div class="vp" id="vp1">
+          <span class="vp-icon">📈</span>
+          <div class="vp-title">投資家として他社を見る</div>
+          <div class="vp-body">
+            上場企業の決算書（簿記の最終成果物）を読むと、「<strong>この会社は本当に稼ぐ力があるのか？</strong>」を
+            広告や評判ではなく、数字で客観的に判断できます。
+            <div class="vp-quote">「売上は伸びているのに、なぜ利益が減っているのか？」——そんな疑問に自分で答えられるようになります。</div>
+          </div>
+        </div>
+        <div class="vp" id="vp2">
+          <span class="vp-icon">🤝</span>
+          <div class="vp-title">取引先として相手を見る</div>
+          <div class="vp-body">
+            新しい取引先と契約を結ぶとき、「<strong>この会社は代金を支払う能力があるか？</strong>」を
+            財務諸表から分析できます。見た目の信頼感だけに頼らない、リスク管理が可能になります。
+            <div class="vp-quote">「売上規模は大きいが、実は借入過多ではないか？」——こうしたリスクを事前に把握できます。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ SLIDE 6: ENGINEER ══ -->
+  <section class="slide enter-from-right" id="s6" data-i="5">
+    <div class="w">
+      <div class="tag">Section 05 &nbsp;/&nbsp; For Builders</div>
+      <h2 class="sh">システム構築に<em>携わる方へ</em></h2>
+      <p class="lead">
+        普段皆さんが扱う「売上入力」や「仕入入力」の画面——そこに入力されるデータは、
+        簿記でいう<strong>「日々の取引」そのもの</strong>です。
+      </p>
+      <div class="eng">
+        <div class="eng-lbl">── THE BUILDER'S PERSPECTIVE</div>
+        <div class="flow">
+          <span class="fstep">売上入力画面</span>
+          <span class="farrow">→</span>
+          <span class="fstep">仕入入力画面</span>
+          <span class="farrow">→</span>
+          <span class="fstep">経費申請システム</span>
+          <span class="farrow">→</span>
+          <span class="fstep" style="background:rgba(232,201,106,.2);border-color:rgba(232,201,106,.4);color:var(--gold-l);">決算書（出口）</span>
+        </div>
+        <p>
+          皆さんが設計するシステムに蓄積される <span class="chip">売上</span> や <span class="chip">仕入</span> のレコードは、
+          ただの数値ではありません。それは会社の行動の証拠であり、最終的には<strong>「決算書」という出口</strong>へと集約されます。
+        </p>
+        <p>
+          入口のデータが最終的にどのような形——<strong>「成績表」や「健康診断書」</strong>——として経営判断に使われるのか。
+          その「出口の構造＝簿記のルール」を知ることで、<strong>より良いシステム設計のヒント</strong>が見つかります。
+        </p>
+        <p>
+          データの整合性、項目の意味、集計の正確さ——これらへの理解が深まるのは、
+          <strong>簿記という「出口」を知っているから</strong>こそです。
+        </p>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /deck -->
+
+<!-- NAV -->
+<div id="nav">
+  <button class="nb" id="bPrev" onclick="go(-1)" disabled>&#8592;</button>
+  <div id="dots"></div>
+  <span id="ctr">1 / 6</span>
+  <button class="nb" id="bNext" onclick="go(1)">&#8594;</button>
+</div>
+
+<script>
+/* ═══════════ STATE ═══════════ */
+const N = 6;
+let cur = 0;
+let quizDone = false;
+let gMerged  = false;
+
+/* ═══════════ DOTS ═══════════ */
+const dotsWrap = document.getElementById('dots');
+for (let i = 0; i < N; i++) {
+  const d = document.createElement('span');
+  d.className = 'dot' + (i === 0 ? ' on' : '');
+  d.setAttribute('title', 'スライド ' + (i + 1));
+  d.onclick = () => go(i - cur);
+  dotsWrap.appendChild(d);
+}
+function syncDots() {
+  document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('on', i === cur));
+}
+function syncProgress() {
+  const pct = N <= 1 ? 100 : (cur / (N - 1)) * 100;
+  document.getElementById('prog').style.width = pct + '%';
+}
+function syncNav() {
+  document.getElementById('bPrev').disabled = cur === 0;
+  document.getElementById('bNext').disabled = cur === N - 1;
+  document.getElementById('ctr').textContent = (cur + 1) + ' / ' + N;
+}
+
+/* ═══════════ NAVIGATE ═══════════ */
+function go(delta) {
+  const next = cur + delta;
+  if (next < 0 || next >= N) return;
+
+  const slides = document.querySelectorAll('.slide');
+  const prevEl = slides[cur];
+  const nextEl = slides[next];
+
+  /* exit current */
+  prevEl.classList.remove('active');
+  prevEl.classList.add(delta > 0 ? 'exit-left' : 'exit-right');
+  setTimeout(() => {
+    prevEl.classList.remove('exit-left', 'exit-right');
+  }, 560);
+
+  /* prepare next */
+  nextEl.classList.remove('enter-from-right', 'enter-from-left');
+  nextEl.style.transform = delta > 0 ? 'translateX(48px)' : 'translateX(-48px)';
+  nextEl.style.opacity   = '0';
+  nextEl.style.transition = 'none';
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      nextEl.style.transform  = '';
+      nextEl.style.opacity    = '';
+      nextEl.style.transition = '';
+      nextEl.classList.add('active');
+    });
+  });
+
+  cur = next;
+  syncDots();
+  syncProgress();
+  syncNav();
+}
+
+/* ═══════════ KEYBOARD ═══════════ */
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown')  go(1);
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')    go(-1);
+});
+
+/* ═══════════ GIMMICK ═══════════ */
+function doMerge() {
+  if (gMerged) return;
+  gMerged = true;
+  document.getElementById('gStage').classList.add('merged');
+  document.getElementById('gMergeBtn').style.display = 'none';
+  const rb = document.getElementById('gResetBtn');
+  rb.style.display = 'inline-block';
+  setTimeout(() => rb.classList.add('act'), 750);
+}
+function doReset() {
+  if (!gMerged) return;
+  gMerged = false;
+  const res = document.getElementById('gRes');
+  res.style.transition = 'opacity .3s, transform .3s';
+  res.style.opacity = '0';
+  res.style.transform = 'scale(.55)';
+  setTimeout(() => {
+    document.getElementById('gStage').classList.remove('merged');
+    res.style.transition = '';
+    res.style.opacity    = '';
+    res.style.transform  = '';
+  }, 330);
+  document.getElementById('gResetBtn').style.display = 'none';
+  document.getElementById('gResetBtn').classList.remove('act');
+  document.getElementById('gMergeBtn').style.display = 'inline-block';
+}
+
+/* ═══════════ QUIZ ═══════════ */
+function answer(el, correct) {
+  if (quizDone) return;
+  quizDone = true;
+  const opts = document.querySelectorAll('.qopt');
+  opts.forEach(o => {
+    if (o === el) {
+      o.classList.add(correct ? 'correct' : 'wrong');
+    } else {
+      o.classList.add('wrong');
+    }
+    o.style.pointerEvents = 'none';
+  });
+  if (correct) {
+    const ans = document.getElementById('qAns');
+    ans.classList.add('show');
+  }
+}
+
+/* ═══════════ VIEW TABS ═══════════ */
+function switchTab(i) {
+  for (let j = 0; j < 3; j++) {
+    document.getElementById('vt' + j).classList.toggle('on', j === i);
+    document.getElementById('vp' + j).classList.toggle('on', j === i);
+  }
+}
+
+/* ═══════════ INIT ═══════════ */
+syncProgress();
+syncNav();
+</script>
+</body>
+</html>

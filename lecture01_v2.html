@@ -383,17 +383,34 @@ html, body {
   background: rgba(74,141,224,.35); padding: 1px 8px; border-radius: 4px;
   font-family: 'Courier New', monospace; font-size: .87em; color: #a8d0ff;
 }
-.flow {
-  display: flex; align-items: center; gap: 10px;
-  margin: 16px 0; flex-wrap: wrap;
+/* convergence diagram */
+.conv {
+  display: flex; align-items: center; gap: 0;
+  margin: 18px 0 20px;
 }
-.fstep {
-  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
-  border-radius: 8px; padding: 8px 14px;
-  font-size: .82rem; font-weight: 600; color: rgba(255,255,255,.9);
-  white-space: nowrap;
+.conv-inputs {
+  display: flex; flex-direction: column; gap: 10px; flex-shrink: 0;
 }
-.farrow { color: rgba(255,255,255,.35); font-size: 1.2rem; }
+.conv-in {
+  background: rgba(255,255,255,.09); border: 1px solid rgba(255,255,255,.2);
+  border-radius: 8px; padding: 9px 16px;
+  font-size: .8rem; font-weight: 600; color: rgba(255,255,255,.88);
+  white-space: nowrap; position: relative;
+}
+.conv-lines {
+  flex: 1; align-self: stretch; display: flex; align-items: center; justify-content: center;
+  min-width: 56px; max-width: 80px;
+}
+.conv-lines svg { display: block; overflow: visible; }
+.conv-out {
+  flex-shrink: 0;
+  background: rgba(232,201,106,.18);
+  border: 1.5px solid rgba(232,201,106,.55);
+  border-radius: 10px; padding: 16px 18px;
+  text-align: center; color: var(--gold-l);
+  font-weight: 800; font-size: .88rem; line-height: 1.5;
+  box-shadow: 0 0 24px rgba(232,201,106,.15);
+}
 
 /* ═══════════════════════════════════════
    RESPONSIVE
@@ -602,14 +619,20 @@ html, body {
       </p>
       <div class="eng">
         <div class="eng-lbl">── THE BUILDER'S PERSPECTIVE</div>
-        <div class="flow">
-          <span class="fstep">売上入力画面</span>
-          <span class="farrow">→</span>
-          <span class="fstep">仕入入力画面</span>
-          <span class="farrow">→</span>
-          <span class="fstep">経費申請システム</span>
-          <span class="farrow">→</span>
-          <span class="fstep" style="background:rgba(232,201,106,.2);border-color:rgba(232,201,106,.4);color:var(--gold-l);">決算書（出口）</span>
+        <div class="conv" id="convDiagram">
+          <div class="conv-inputs" id="convInputs">
+            <div class="conv-in">📦 仕入の入力</div>
+            <div class="conv-in">🛒 売上の入力</div>
+            <div class="conv-in">💸 経費の入力</div>
+            <div class="conv-in">👤 給与の入力</div>
+          </div>
+          <div class="conv-lines">
+            <!-- SVGの矢印はJSで動的に描画 -->
+            <svg id="convSvg" preserveAspectRatio="none"></svg>
+          </div>
+          <div class="conv-out">
+            📄<br>決算書<br><span style="font-size:.72rem;font-weight:500;opacity:.75;">（すべての出口）</span>
+          </div>
         </div>
         <p>
           皆さんが設計するシステムに蓄積される <span class="chip">売上</span> や <span class="chip">仕入</span> のレコードは、
@@ -701,6 +724,8 @@ function go(delta) {
   syncDots();
   syncProgress();
   syncNav();
+  /* redraw convergence diagram when slide 6 becomes visible */
+  if (next === 5) setTimeout(drawConvArrows, 80);
 }
 
 /* ═══════════ KEYBOARD ═══════════ */
@@ -768,6 +793,54 @@ function switchTab(i) {
     document.getElementById('vp' + j).classList.toggle('on', j === i);
   }
 }
+
+/* ═══════════ CONVERGENCE DIAGRAM ═══════════ */
+function drawConvArrows() {
+  const svg    = document.getElementById('convSvg');
+  const inputs = document.querySelectorAll('#convInputs .conv-in');
+  const out    = document.querySelector('.conv-out');
+  const wrap   = document.getElementById('convDiagram');
+  if (!svg || !out || inputs.length === 0) return;
+
+  const svgEl  = svg.parentElement;
+  const svgR   = svgEl.getBoundingClientRect();
+  const outR   = out.getBoundingClientRect();
+  const wrapR  = wrap.getBoundingClientRect();
+
+  const W = svgR.width  || 1;
+  const H = svgR.height || 1;
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+  svg.setAttribute('width',  W);
+  svg.setAttribute('height', H);
+
+  /* target point: left edge of conv-out, vertically centred */
+  const tx = outR.left - svgR.left;
+  const ty = outR.top  + outR.height / 2 - svgR.top;
+
+  let paths = '';
+  inputs.forEach(inp => {
+    const r  = inp.getBoundingClientRect();
+    const sx = 0;                               /* left of SVG column */
+    const sy = r.top + r.height / 2 - svgR.top;
+    const cx = W * 0.55;
+    paths += `<path d="M${sx},${sy} C${cx},${sy} ${cx},${ty} ${tx},${ty}"
+       fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="1.5"
+       marker-end="url(#arr)" />`;
+  });
+
+  svg.innerHTML = `
+    <defs>
+      <marker id="arr" markerWidth="6" markerHeight="6"
+              refX="5" refY="3" orient="auto">
+        <path d="M0,0 L6,3 L0,6 Z" fill="rgba(232,201,106,0.7)" />
+      </marker>
+    </defs>
+    ${paths}`;
+}
+
+/* draw after fonts/layout settle */
+window.addEventListener('load', () => setTimeout(drawConvArrows, 120));
+window.addEventListener('resize', drawConvArrows);
 
 /* ═══════════ INIT ═══════════ */
 syncProgress();
